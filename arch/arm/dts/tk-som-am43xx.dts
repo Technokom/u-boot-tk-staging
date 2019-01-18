@@ -1,0 +1,262 @@
+/*
+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/* AM437x GP EVM */
+
+/dts-v1/;
+
+#include "am4372.dtsi"
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/pinctrl/am43xx.h>
+#include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "TI AM437x TK";
+	compatible = "ti,am437x-tk","ti,am4378","ti,am43";
+
+	aliases {
+
+	};
+
+	chosen {
+		stdout-path = &uart0;
+		tick-timer = &timer2;
+	};
+
+	vmmcsd_fixed: fixedregulator-sd {
+		compatible = "regulator-fixed";
+		regulator-name = "vmmcsd_fixed";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+	};
+
+	/* fixed 12MHz oscillator */
+	refclk: oscillator {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+	};
+
+};
+
+&am43xx_pinmux {
+	pinctrl-names = "default", "sleep";
+
+	i2c0_pins: i2c0_pins {
+		pinctrl-single,pins = <
+			0x188 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)  /* i2c0_sda.i2c0_sda */
+			0x18c (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)  /* i2c0_scl.i2c0_scl */
+		>;
+	};
+
+	i2c1_pins_default: i2c1_pins_default {
+		pinctrl-single,pins = <
+			0x240 (PIN_INPUT_PULLUP | MUX_MODE1)  /* (G20) gpio5_10.I2C1_SCL */
+			0x248 (PIN_INPUT_PULLUP | MUX_MODE1)  /* (E25) gpio5_12.I2C1_SDA */
+		>;
+	};
+
+	mmc0_pins: pinmux_mmc0_pins {
+		pinctrl-single,pins = <
+			0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
+		>;
+	};
+
+	mmc1_pins: pinmux_mmc1_pins {
+		pinctrl-single,pins = <
+		    0x80 ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (B9) gpmc_csn1.mmc1_clk */
+		    0x84 ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (F10) gpmc_csn2.mmc1_cmd */
+		    0x20 ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (B10) gpmc_ad8.mmc1_dat0 */
+		    0x24 ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (A10) gpmc_ad9.mmc1_dat1 */
+		    0x28 ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (F11) gpmc_ad10.mmc1_dat2 */
+		    0x2c ( PIN_INPUT_PULLUP | MUX_MODE2 ) /* (D11) gpmc_ad11.mmc1_dat3 */
+		>;
+	};
+
+	cpsw_default: cpsw_default {
+		pinctrl-single,pins = <
+			0x10c ( PIN_INPUT_PULLUP | MUX_MODE1 ) /* (B14) mii1_crs.rmii1_crs_dv */
+			0x110 ( PIN_INPUT_PULLUP | MUX_MODE1 ) /* (B13) mii1_rx_er.rmii1_rxer */
+			0x114 ( PIN_OUTPUT_PULLDOWN | MUX_MODE1 ) /* (A13) mii1_tx_en.rmii1_txen */
+			0x128 ( PIN_OUTPUT_PULLDOWN | MUX_MODE1 ) /* (B15) mii1_txd0.rmii1_txd0 */
+			0x124 ( PIN_OUTPUT_PULLDOWN | MUX_MODE1 ) /* (A14) mii1_txd1.rmii1_txd1 */
+			0x140 ( PIN_INPUT_PULLUP | MUX_MODE1 ) /* (F17) mii1_rxd0.rmii1_rxd0 */
+			0x13c ( PIN_INPUT_PULLUP | MUX_MODE1 ) /* (B16) mii1_rxd1.rmii1_rxd1 */
+			0x144 ( PIN_INPUT_PULLDOWN | MUX_MODE0 ) /* (A16) rmii1_ref_clk.rmii1_refclk */
+		>;
+	};
+
+
+	davinci_mdio_default: davinci_mdio_default {
+		pinctrl-single,pins = <
+			/* MDIO */
+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
+		>;
+	};
+
+};
+
+&i2c1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins_default>;
+	clock-frequency = <100000>;
+
+	tps65218: tps65218@24 {
+		reg = <0x24>;
+		compatible = "ti,tps65218";
+		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+		interrupt-controller;
+		#interrupt-cells = <2>;
+
+		dcdc1: regulator-dcdc1 {
+			compatible = "ti,tps65218-dcdc1";
+			regulator-name = "vdd_core";
+			regulator-min-microvolt = <912000>;
+			regulator-max-microvolt = <1144000>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
+
+		dcdc2: regulator-dcdc2 {
+			compatible = "ti,tps65218-dcdc2";
+			regulator-name = "vdd_mpu";
+			regulator-min-microvolt = <912000>;
+			regulator-max-microvolt = <1378000>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
+
+		dcdc3: regulator-dcdc3 {
+			compatible = "ti,tps65218-dcdc3";
+			regulator-name = "vdcdc3";
+			regulator-min-microvolt = <1500000>;
+			regulator-max-microvolt = <1500000>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
+		dcdc5: regulator-dcdc5 {
+			compatible = "ti,tps65218-dcdc5";
+			regulator-name = "v1_0bat";
+			regulator-min-microvolt = <1000000>;
+			regulator-max-microvolt = <1000000>;
+		};
+
+		dcdc6: regulator-dcdc6 {
+			compatible = "ti,tps65218-dcdc6";
+			regulator-name = "v1_8bat";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+		};
+
+		ldo1: regulator-ldo1 {
+			compatible = "ti,tps65218-ldo1";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
+	};
+
+
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio3 {
+	status = "okay";
+
+};
+
+&gpio4 {
+	status = "okay";
+};
+
+&gpio5 {
+	status = "okay";
+};
+
+&mmc1 {
+	status = "okay";
+	vmmc-supply = <&vmmcsd_fixed>;
+	bus-width = <4>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc0_pins>;
+	cd-gpios = <&gpio3 14 GPIO_ACTIVE_LOW>;
+};
+
+&mmc2 {
+	status = "okay";
+	vmmc-supply = <&vmmcsd_fixed>;
+	bus-width = <8>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc1_pins>;
+	ti,non-removable;
+};
+
+&usb2_phy1 {
+    status = "okay";
+};
+
+&usb1 {
+    dr_mode = "peripheral";
+    status = "okay";
+};
+
+&usb2_phy2 {
+    status = "okay";
+};
+
+&usb2 {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&edma {
+	ti,edma-xbar-event-map = /bits/ 16 <1 30
+					    2 31>;
+};
+
+&mac {
+	slaves = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&cpsw_default>;
+	status = "okay";
+};
+
+&davinci_mdio {
+	pinctrl-names = "default";
+	pinctrl-0 = <&davinci_mdio_default>;
+	status = "okay";
+};
+
+&cpsw_emac0 {
+	phy_id = <&davinci_mdio>, <7>;
+	phy-mode = "rmii";
+};
+
+&phy_sel {
+	rmii-clock-ext;
+};
+
+&elm {
+	status = "okay";
+};
+
+
+
+

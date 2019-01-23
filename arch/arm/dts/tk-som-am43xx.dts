@@ -11,14 +11,13 @@
 /dts-v1/;
 
 #include "am4372.dtsi"
-#include <dt-bindings/input/input.h>
 #include <dt-bindings/pinctrl/am43xx.h>
 #include <dt-bindings/pwm/pwm.h>
 #include <dt-bindings/gpio/gpio.h>
 
 / {
 	model = "TI AM437x TK";
-	compatible = "ti,am437x-tk","ti,am4378","ti,am43";
+	compatible = "ti,tk-som-am43xx","ti,am4372","ti,am43";
 
 	aliases {
 
@@ -65,7 +64,14 @@
 
 	mmc0_pins: pinmux_mmc0_pins {
 		pinctrl-single,pins = <
-			0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
+            
+            0x100 ( PIN_INPUT | MUX_MODE0) /* (D1) mmc0_clk.mmc0_clk */
+		    0x104 ( PIN_INPUT_PULLUP | MUX_MODE0) /* (D2) mmc0_cmd.mmc0_cmd */
+		    0xfc  ( PIN_INPUT_PULLUP | MUX_MODE0) /* (C1) mmc0_dat0.mmc0_dat0 */
+		    0xf8  ( PIN_INPUT_PULLUP | MUX_MODE0) /* (C2) mmc0_dat1.mmc0_dat1 */
+		    0xf4  ( PIN_INPUT_PULLUP | MUX_MODE0) /* (B2) mmc0_dat2.mmc0_dat2 */
+		    0xf0  ( PIN_INPUT_PULLUP | MUX_MODE0) /* (B1) mmc0_dat3.mmc0_dat3 */
+		    0x190 ( PIN_INPUT | MUX_MODE7) /* (N24) mcasp0_aclkx.mmc0_sdcd */
 		>;
 	};
 
@@ -104,10 +110,10 @@
 
 };
 
-&i2c1 {
+&i2c0 {
 	status = "okay";
 	pinctrl-names = "default";
-	pinctrl-0 = <&i2c1_pins_default>;
+	pinctrl-0 = <&i2c0_pins>;
 	clock-frequency = <100000>;
 
 	tps65218: tps65218@24 {
@@ -179,7 +185,6 @@
 
 &gpio3 {
 	status = "okay";
-
 };
 
 &gpio4 {
@@ -189,6 +194,7 @@
 &gpio5 {
 	status = "okay";
 };
+
 
 &mmc1 {
 	status = "okay";

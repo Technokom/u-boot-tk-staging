@@ -21,7 +21,6 @@
 #include <asm/arch/gpio.h>
 #include <asm/emif.h>
 #include <asm/omap_common.h>
-#include "../common/board_detect.h"
 #include "board.h"
 #include <power/pmic.h>
 #include <power/tps65218.h>
@@ -36,16 +35,6 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
-
-/*
- * Read header information from EEPROM into global structure.
- */
-#ifdef CONFIG_TI_I2C_BOARD_DETECT
-void do_board_detect(void)
-{
-
-}
-#endif
 
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 
@@ -98,78 +87,9 @@ const struct dpll_params dpll_per[NUM_CRYSTAL_FREQ] = {
 		{480, 12, 5, -1, -1, -1, -1}	/* 26 MHz */
 };
 
-const struct dpll_params epos_evm_dpll_ddr[NUM_CRYSTAL_FREQ] = {
-		{665, 47, 1, -1, 4, -1, -1}, /*19.2*/
-		{133, 11, 1, -1, 4, -1, -1}, /* 24 MHz */
-		{266, 24, 1, -1, 4, -1, -1}, /* 25 MHz */
-		{133, 12, 1, -1, 4, -1, -1}  /* 26 MHz */
-};
-
-const struct dpll_params gp_evm_dpll_ddr = {
+const struct dpll_params tk_som_dpll_ddr = {
 		50, 2, 1, -1, 2, -1, -1};
 
-static const struct dpll_params idk_dpll_ddr = {
-	400, 23, 1, -1, 2, -1, -1
-};
-
-static const u32 ext_phy_ctrl_const_base_lpddr2[] = {
-	0x00500050,
-	0x00350035,
-	0x00350035,
-	0x00350035,
-	0x00350035,
-	0x00350035,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x00000000,
-	0x40001000,
-	0x08102040
-};
-
-const struct ctrl_ioregs ioregs_lpddr2 = {
-	.cm0ioctl		= LPDDR2_ADDRCTRL_IOCTRL_VALUE,
-	.cm1ioctl		= LPDDR2_ADDRCTRL_WD0_IOCTRL_VALUE,
-	.cm2ioctl		= LPDDR2_ADDRCTRL_WD1_IOCTRL_VALUE,
-	.dt0ioctl		= LPDDR2_DATA0_IOCTRL_VALUE,
-	.dt1ioctl		= LPDDR2_DATA0_IOCTRL_VALUE,
-	.dt2ioctrl		= LPDDR2_DATA0_IOCTRL_VALUE,
-	.dt3ioctrl		= LPDDR2_DATA0_IOCTRL_VALUE,
-	.emif_sdram_config_ext	= 0x1,
-};
-
-const struct emif_regs emif_regs_lpddr2 = {
-	.sdram_config			= 0x808012BA,
-	.ref_ctrl			= 0x0000040D,
-	.sdram_tim1			= 0xEA86B411,
-	.sdram_tim2			= 0x103A094A,
-	.sdram_tim3			= 0x0F6BA37F,
-	.read_idle_ctrl			= 0x00050000,
-	.zq_config			= 0x50074BE4,
-	.temp_alert_config		= 0x0,
-	.emif_rd_wr_lvl_rmp_win		= 0x0,
-	.emif_rd_wr_lvl_rmp_ctl		= 0x0,
-	.emif_rd_wr_lvl_ctl		= 0x0,
-	.emif_ddr_phy_ctlr_1		= 0x0E284006,
-	.emif_rd_wr_exec_thresh		= 0x80000405,
-	.emif_ddr_ext_phy_ctrl_1	= 0x04010040,
-	.emif_ddr_ext_phy_ctrl_2	= 0x00500050,
-	.emif_ddr_ext_phy_ctrl_3	= 0x00500050,
-	.emif_ddr_ext_phy_ctrl_4	= 0x00500050,
-	.emif_ddr_ext_phy_ctrl_5	= 0x00500050,
-	.emif_prio_class_serv_map	= 0x80000001,
-	.emif_connect_id_serv_1_map	= 0x80000094,
-	.emif_connect_id_serv_2_map	= 0x00000000,
-	.emif_cos_config			= 0x000FFFFF
-};
 
 const struct ctrl_ioregs ioregs_ddr3 = {
 	.cm0ioctl		= DDR3_ADDRCTRL_IOCTRL_VALUE,
@@ -207,7 +127,7 @@ const struct emif_regs ddr3_emif_regs_400Mhz = {
 	.emif_cos_config		= 0x000FFFFF
 };
 
-/* EMIF DDR3 Configurations are different for beta AM43X GP EVMs */
+
 const struct emif_regs ddr3_emif_regs_400Mhz_beta = {
 	.sdram_config			= 0x638413B2,
 	.ref_ctrl			= 0x00000C30,
@@ -230,7 +150,7 @@ const struct emif_regs ddr3_emif_regs_400Mhz_beta = {
 	.emif_cos_config		= 0x000FFFFF
 };
 
-/* EMIF DDR3 Configurations are different for production AM43X GP EVMs */
+
 const struct emif_regs ddr3_emif_regs_400Mhz_production = {
 	.sdram_config			= 0x638413B2,
 	.ref_ctrl			= 0x00000C30,
@@ -253,71 +173,14 @@ const struct emif_regs ddr3_emif_regs_400Mhz_production = {
 	.emif_cos_config		= 0x000FFFFF
 };
 
-static const struct emif_regs ddr3_sk_emif_regs_400Mhz = {
-	.sdram_config			= 0x638413b2,
-	.sdram_config2			= 0x00000000,
-	.ref_ctrl			= 0x00000c30,
-	.sdram_tim1			= 0xeaaad4db,
-	.sdram_tim2			= 0x266b7fda,
-	.sdram_tim3			= 0x107f8678,
-	.read_idle_ctrl			= 0x00050000,
-	.zq_config			= 0x50074be4,
-	.temp_alert_config		= 0x0,
-	.emif_ddr_phy_ctlr_1		= 0x0e084008,
-	.emif_ddr_ext_phy_ctrl_1	= 0x08020080,
-	.emif_ddr_ext_phy_ctrl_2	= 0x89,
-	.emif_ddr_ext_phy_ctrl_3	= 0x90,
-	.emif_ddr_ext_phy_ctrl_4	= 0x8e,
-	.emif_ddr_ext_phy_ctrl_5	= 0x8d,
-	.emif_rd_wr_lvl_rmp_win		= 0x0,
-	.emif_rd_wr_lvl_rmp_ctl		= 0x00000000,
-	.emif_rd_wr_lvl_ctl		= 0x00000000,
-	.emif_rd_wr_exec_thresh		= 0x80000000,
-	.emif_prio_class_serv_map	= 0x80000001,
-	.emif_connect_id_serv_1_map	= 0x80000094,
-	.emif_connect_id_serv_2_map	= 0x00000000,
-	.emif_cos_config		= 0x000FFFFF
-};
-
-static const struct emif_regs ddr3_idk_emif_regs_400Mhz = {
-	.sdram_config			= 0x61a11b32,
-	.sdram_config2			= 0x00000000,
-	.ref_ctrl			= 0x00000c30,
-	.sdram_tim1			= 0xeaaad4db,
-	.sdram_tim2			= 0x266b7fda,
-	.sdram_tim3			= 0x107f8678,
-	.read_idle_ctrl			= 0x00050000,
-	.zq_config			= 0x50074be4,
-	.temp_alert_config		= 0x00000000,
-	.emif_ddr_phy_ctlr_1		= 0x00008009,
-	.emif_ddr_ext_phy_ctrl_1	= 0x08020080,
-	.emif_ddr_ext_phy_ctrl_2	= 0x00000040,
-	.emif_ddr_ext_phy_ctrl_3	= 0x0000003e,
-	.emif_ddr_ext_phy_ctrl_4	= 0x00000051,
-	.emif_ddr_ext_phy_ctrl_5	= 0x00000051,
-	.emif_rd_wr_lvl_rmp_win		= 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl		= 0x00000000,
-	.emif_rd_wr_lvl_ctl		= 0x00000000,
-	.emif_rd_wr_exec_thresh		= 0x00000405,
-	.emif_prio_class_serv_map	= 0x00000000,
-	.emif_connect_id_serv_1_map	= 0x00000000,
-	.emif_connect_id_serv_2_map	= 0x00000000,
-	.emif_cos_config		= 0x00ffffff
-};
-
 void emif_get_ext_phy_ctrl_const_regs(const u32 **regs, u32 *size)
 {
-	//if (board_is_eposevm()) {
-	//	*regs = ext_phy_ctrl_const_base_lpddr2;
-	//	*size = ARRAY_SIZE(ext_phy_ctrl_const_base_lpddr2);
-	//}
-
-	return;
+	
 }
 
 const struct dpll_params *get_dpll_ddr_params(void)
 {
-	return &gp_evm_dpll_ddr;
+	return &tk_som_dpll_ddr;
 }
 
 
@@ -341,8 +204,9 @@ static int get_opp_offset(int max_off, int min_off)
 
 	for (i = max_off; i >= min_off; i--) {
 		offset = opp & (1 << i);
-		if (!offset)
+		if (!offset) {
 			return i;
+		}
 	}
 
 	return min_off;
@@ -374,8 +238,9 @@ void scale_vcores_generic(u32 m)
 {
 	int mpu_vdd, ddr_volt;
 
-	if (i2c_probe(TPS65218_CHIP_PM))
+	if (i2c_probe(TPS65218_CHIP_PM)) {
 		return;
+	}
 
 	switch (m) {
 	case 1000:
@@ -399,8 +264,7 @@ void scale_vcores_generic(u32 m)
 	}
 
 	/* Set DCDC1 (CORE) voltage to 1.1V */
-	if (tps65218_voltage_update(TPS65218_DCDC1,
-				    TPS65218_DCDC_VOLT_SEL_1100MV)) {
+	if (tps65218_voltage_update(TPS65218_DCDC1, TPS65218_DCDC_VOLT_SEL_1100MV)) {
 		printf("%s failure\n", __func__);
 		return;
 	}
@@ -411,48 +275,9 @@ void scale_vcores_generic(u32 m)
 		return;
 	}
 
-	//if (board_is_eposevm())
-	//	ddr_volt = TPS65218_DCDC3_VOLT_SEL_1200MV;
-	//else
 	ddr_volt = TPS65218_DCDC3_VOLT_SEL_1350MV;
-
 	/* Set DCDC3 (DDR) voltage */
 	if (tps65218_voltage_update(TPS65218_DCDC3, ddr_volt)) {
-		printf("%s failure\n", __func__);
-		return;
-	}
-}
-
-void scale_vcores_idk(u32 m)
-{
-	int mpu_vdd;
-
-	if (i2c_probe(TPS62362_I2C_ADDR))
-		return;
-
-	switch (m) {
-	case 1000:
-		mpu_vdd = TPS62362_DCDC_VOLT_SEL_1330MV;
-		break;
-	case 800:
-		mpu_vdd = TPS62362_DCDC_VOLT_SEL_1260MV;
-		break;
-	case 720:
-		mpu_vdd = TPS62362_DCDC_VOLT_SEL_1200MV;
-		break;
-	case 600:
-		mpu_vdd = TPS62362_DCDC_VOLT_SEL_1100MV;
-		break;
-	case 300:
-		mpu_vdd = TPS62362_DCDC_VOLT_SEL_1330MV;
-		break;
-	default:
-		puts("Unknown MPU clock, not scaling\n");
-		return;
-	}
-
-	/* Set VDD_MPU voltage */
-	if (tps62362_voltage_update(TPS62362_SET3, mpu_vdd)) {
 		printf("%s failure\n", __func__);
 		return;
 	}
@@ -475,15 +300,9 @@ void scale_vcores(void)
 {
 	const struct dpll_params *mpu_params;
 
-	/* Ensure I2C is initialized for PMIC configuration */
 	gpi2c_init();
-
 	/* Get the frequency */
 	mpu_params = get_dpll_mpu_params();
-
-	//if (board_is_idk())
-	//	scale_vcores_idk(mpu_params->m);
-	//else
 	scale_vcores_generic(mpu_params->m);
 }
 
@@ -497,34 +316,6 @@ void set_mux_conf_regs(void)
 	enable_board_pin_mux();
 }
 
-static void enable_vtt_regulator(void)
-{
-	u32 temp;
-
-	/* enable module */
-	writel(GPIO_CTRL_ENABLEMODULE, AM33XX_GPIO5_BASE + OMAP_GPIO_CTRL);
-
-	/* enable output for GPIO5_7 */
-	writel(GPIO_SETDATAOUT(7),
-	       AM33XX_GPIO5_BASE + OMAP_GPIO_SETDATAOUT);
-	temp = readl(AM33XX_GPIO5_BASE + OMAP_GPIO_OE);
-	temp = temp & ~(GPIO_OE_ENABLE(7));
-	writel(temp, AM33XX_GPIO5_BASE + OMAP_GPIO_OE);
-}
-
-enum {
-	RTC_BOARD_EPOS = 1,
-	RTC_BOARD_EVM14,
-	RTC_BOARD_EVM12,
-	RTC_BOARD_GPEVM,
-	RTC_BOARD_SK,
-};
-
-/*
- * In the rtc_only boot path we have the board type info in the rtc scratch pad
- * register hence we bypass the costly i2c reads to eeprom and directly program
- * the board name string
- */
 void rtc_only_update_board_type(u32 btype)
 {
 
@@ -537,36 +328,7 @@ u32 rtc_only_get_board_type(void)
 
 void sdram_init(void)
 {
-	/*
-	 * EPOS EVM has 1GB LPDDR2 connected to EMIF.
-	 * GP EMV has 1GB DDR3 connected to EMIF
-	 * along with VTT regulator.
-	 */
-/*
-	if (board_is_eposevm()) {
-		config_ddr(0, &ioregs_lpddr2, NULL, NULL, &emif_regs_lpddr2, 0);
-	} else if (board_is_evm_14_or_later()) {
-		enable_vtt_regulator();
-		config_ddr(0, &ioregs_ddr3, NULL, NULL,
-			   &ddr3_emif_regs_400Mhz_production, 0);
-	} else if (board_is_evm_12_or_later()) {
-		enable_vtt_regulator();
-		config_ddr(0, &ioregs_ddr3, NULL, NULL,
-			   &ddr3_emif_regs_400Mhz_beta, 0);
-	} else if (board_is_evm()) {
-		enable_vtt_regulator();
-		config_ddr(0, &ioregs_ddr3, NULL, NULL,
-			   &ddr3_emif_regs_400Mhz, 0);
-	} else if (board_is_sk()) {
-		config_ddr(400, &ioregs_ddr3, NULL, NULL,
-			   &ddr3_sk_emif_regs_400Mhz, 0);
-	} else if (board_is_idk()) {
-		config_ddr(400, &ioregs_ddr3, NULL, NULL,
-			   &ddr3_idk_emif_regs_400Mhz, 0);
-	}
-*/
 	config_ddr(0, &ioregs_ddr3, NULL, NULL, &ddr3_emif_regs_400Mhz_production, 0);
-
 }
 #endif
 
@@ -577,8 +339,9 @@ int power_init_board(void)
 
 	power_tps65218_init(I2C_PMIC);
 	p = pmic_get("TPS65218_PMIC");
-	if (p && !pmic_probe(p))
+	if (p && !pmic_probe(p)) {
 		puts("PMIC:  TPS65218\n");
+	}
 
 	return 0;
 }
@@ -599,23 +362,14 @@ int board_init(void)
 	hw_data_init();
 
 	/* Clear all important bits for DSS errata that may need to be tweaked*/
-	mreqprio_0 = readl(&cdev->mreqprio_0) & MREQPRIO_0_SAB_INIT1_MASK &
-	                   MREQPRIO_0_SAB_INIT0_MASK;
-
+	mreqprio_0 = readl(&cdev->mreqprio_0) & MREQPRIO_0_SAB_INIT1_MASK & MREQPRIO_0_SAB_INIT0_MASK;
 	mreqprio_1 = readl(&cdev->mreqprio_1) & MREQPRIO_1_DSS_MASK;
-
-	modena_init0_bw_fractional = readl(&bwlimiter->modena_init0_bw_fractional) &
-	                                   BW_LIMITER_BW_FRAC_MASK;
-
-	modena_init0_bw_integer = readl(&bwlimiter->modena_init0_bw_integer) &
-	                                BW_LIMITER_BW_INT_MASK;
-
-	modena_init0_watermark_0 = readl(&bwlimiter->modena_init0_watermark_0) &
-	                                 BW_LIMITER_BW_WATERMARK_MASK;
+	modena_init0_bw_fractional = readl(&bwlimiter->modena_init0_bw_fractional) & BW_LIMITER_BW_FRAC_MASK;
+	modena_init0_bw_integer = readl(&bwlimiter->modena_init0_bw_integer) & BW_LIMITER_BW_INT_MASK;
+	modena_init0_watermark_0 = readl(&bwlimiter->modena_init0_watermark_0) & BW_LIMITER_BW_WATERMARK_MASK;
 
 	/* Setting MReq Priority of the DSS*/
 	mreqprio_0 |= 0x77;
-
 	/*
 	 * Set L3 Fast Configuration Register
 	 * Limiting bandwith for ARM core to 700 MBPS
@@ -638,13 +392,6 @@ int board_late_init(void)
 {
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	//set_board_info_env(NULL);
-
-	/*
-	 * Default FIT boot on HS devices. Non FIT images are not allowed
-	 * on HS devices.
-	 */
-	//if (get_device_type() == HS_DEVICE)
-		//env_set("boot_fit", "1");
 #endif
 	return 0;
 }
@@ -692,8 +439,9 @@ int usb_gadget_handle_interrupts(int index)
 	u32 status;
 
 	status = dwc3_omap_uboot_interrupt_status(index);
-	if (status)
+	if (status) {
 		dwc3_uboot_handle_interrupt(index);
+	}
 
 	return 0;
 }
@@ -891,16 +639,3 @@ int board_fit_config_name_match(const char *name)
 }
 #endif
 
-#ifdef CONFIG_TI_SECURE_DEVICE
-void board_fit_image_post_process(void **p_image, size_t *p_size)
-{
-	secure_boot_verify_image(p_image, p_size);
-}
-
-void board_tee_image_process(ulong tee_image, size_t tee_size)
-{
-	secure_tee_install((u32)tee_image);
-}
-
-U_BOOT_FIT_LOADABLE_HANDLER(IH_TYPE_TEE, board_tee_image_process);
-#endif

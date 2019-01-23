@@ -238,6 +238,9 @@ void scale_vcores_generic(u32 m)
 {
 	int mpu_vdd, ddr_volt;
 
+
+	
+
 	if (i2c_probe(TPS65218_CHIP_PM)) {
 		return;
 	}

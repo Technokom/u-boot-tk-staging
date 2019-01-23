@@ -227,7 +227,7 @@ config TARGET_AM43XX_EVM
 
 
 config TARGET_TK_SOM_AM43XX
-	bool "Support am43xx_tk"
+	bool "Technokom tk-som-am43xx"
 	select BOARD_LATE_INIT
 	imply DM_ETH
 	imply DM_I2C

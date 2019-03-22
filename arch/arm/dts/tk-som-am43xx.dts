@@ -102,6 +102,12 @@
 		>;
 	};
 
+	periph_pin_enable: periph_pin_enable {
+		pinctrl-single,pins = <
+	        0x268 (PIN_OUTPUT | MUX_MODE7 )  /* (P20) spi2_d1.gpio3[23] */
+		>;
+	};
+
 };
 
 &i2c0 {
@@ -179,6 +185,17 @@
 
 &gpio3 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&periph_pin_enable>;
+    ti,gpio-always-on;
+    ti,no-reset-on-init;
+
+	p23 {
+		gpio-hog;
+		gpios = <23 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "PeriphEnable";
+	};
 };
 
 &gpio4 {

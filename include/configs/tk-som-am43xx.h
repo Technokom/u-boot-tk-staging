@@ -117,6 +117,14 @@
 #define CONFIG_ENV_OFFSET_REDUND       0x120000
 #endif
 
+#define CONFIG_ENV_IS_IN_MMC		
+#define CONFIG_SYS_MMC_ENV_DEV  	1
+#define CONFIG_SYS_MMC_ENV_PART		1
+#define CONFIG_ENV_OFFSET		    0
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+
+
 /* SPI */
 #define CONFIG_TI_SPI_MMAP
 #define CONFIG_QSPI_SEL_GPIO                   48
@@ -131,21 +139,43 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
-	DEFAULT_MMC_TI_ARGS \
-	DEFAULT_FIT_TI_ARGS \
-	"fdtfile=undefined\0" \
-	"bootpart=0:2\0" \
+	"fdtfile=ag-info-tk.dtb\0" \
+	"bootpart=1:2\0" \
+    "mmcdev=1\0" \
+    "env_saved=no\0" \
+    "mmcrootfstype=ext4 rootwait\0" \
 	"bootdir=/boot\0" \
 	"bootfile=zImage\0" \
+    "serverip=192.168.6.17\0" \
 	"console=ttyO0,115200n8\0" \
+    "finduuid=part uuid mmc ${bootpart} uuid\0" \
+	"args_mmc=run finduuid;setenv bootargs console=${console} " \
+		"${optargs} " \
+		"root=PARTUUID=${uuid} rw " \
+		"rootfstype=${mmcrootfstype} " \
+        "init=/bin/dietsplash " \
+        "lpj=7184384 " \
+        "panic=-1 "\
+        "serial=${board_serial}\0"\
 	"partitions=" \
 		"uuid_disk=${uuid_gpt_disk};" \
 		"name=rootfs,start=2MiB,size=-,uuid=${uuid_gpt_rootfs}\0" \
 	"optargs=\0" \
-	"findfdt="\
-			"setenv fdtfile tk-som-am43xx.dtb; fi; \0" \
-	NETARGS \
-	DFUARGS \
+	"loadimage=load ${devtype} ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"loadfdt=load ${devtype} ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
+	"mmcboot=mmc dev ${mmcdev}; " \
+		"setenv devnum ${mmcdev}; " \
+		"setenv devtype mmc; " \
+		"if mmc rescan; then " \
+			"echo SD/MMC found on device ${devnum}; "\
+			"if run loadimage; then " \
+                "tkserial; " \
+				"run loadfdt; " \
+				"echo Booting from mmc${mmcdev} ...; " \
+				"run args_mmc; " \
+				"bootz ${loadaddr} - ${fdtaddr}; " \
+			"fi;" \
+		"fi;\0" \
 
 #define CONFIG_BOOTCOMMAND \
 	"run findfdt; " \

@@ -161,6 +161,11 @@ config CMD_LICENSE
 	help
 	  Print GPL license text
 
+config CMD_TK_SERIAL
+    bool "tkserial"
+    help
+        Set serial number
+
 config CMD_REGINFO
 	bool "reginfo"
 	depends on PPC

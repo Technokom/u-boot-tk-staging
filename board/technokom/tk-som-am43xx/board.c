@@ -354,6 +354,7 @@ int board_init(void)
 	struct l3f_cfg_bwlimiter *bwlimiter = (struct l3f_cfg_bwlimiter *)L3F_CFG_BWLIMITER;
 	u32 mreqprio_0, mreqprio_1, modena_init0_bw_fractional,
 	    modena_init0_bw_integer, modena_init0_watermark_0;
+	u32 temp;
 
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 	gpmc_init();
@@ -386,6 +387,12 @@ int board_init(void)
 	writel(modena_init0_bw_fractional, &bwlimiter->modena_init0_bw_fractional);
 	writel(modena_init0_bw_integer, &bwlimiter->modena_init0_bw_integer);
 	writel(modena_init0_watermark_0, &bwlimiter->modena_init0_watermark_0);
+
+	writel(GPIO_CTRL_ENABLEMODULE, AM33XX_GPIO3_BASE + OMAP_GPIO_CTRL);
+    writel(GPIO_SETDATAOUT(23), AM33XX_GPIO3_BASE + OMAP_GPIO_SETDATAOUT);
+	temp = readl(AM33XX_GPIO3_BASE + OMAP_GPIO_OE);
+    temp = temp & ~(GPIO_OE_ENABLE(23));
+	writel(temp, AM33XX_GPIO3_BASE + OMAP_GPIO_OE);
 
 	return 0;
 }
